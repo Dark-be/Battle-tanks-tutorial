@@ -34,7 +34,15 @@ io.on('connection', (socket)=>{
     console.log(reason)
     delete backendPlayers[socket.id]
   })
+
+  socket.on('updatePlayer', ({x, y, angle})=>{
+    backendPlayers[socket.id].x = x
+    backendPlayers[socket.id].y = y
+    backendPlayers[socket.id].angle = angle
+  })
 })
+
+
 
 setInterval(() => {
   io.emit('updatePlayers', backendPlayers)

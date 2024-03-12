@@ -5,10 +5,16 @@ canvas.height = window.innerHeight
 
 const socket = io()
 
+const keys = {
+  w: false,
+  a: false,
+  s: false,
+  d: false
+}
+const SPEED = 5
 const frontendPlayers = {}
-
 socket.on('updatePlayers', (backendPlayers)=>{
-  for(var id in backendPlayers){
+  for(var id in backendPlayers){// 生成新玩家
     if(!frontendPlayers[id]){
       frontendPlayers[id] = new Player({
         x: backendPlayers[id].x,
@@ -19,8 +25,20 @@ socket.on('updatePlayers', (backendPlayers)=>{
     }
   }
   for(var id in frontendPlayers){
-    if(!backendPlayers[id]){
+    if(!backendPlayers[id]){// 删除断线玩家
       delete frontendPlayers[id]
+    }
+    
+    if(socket.id!=id && backendPlayers[id]){//更新在线玩家位置
+
+      gsap.to(frontendPlayers[id], {
+        x: backendPlayers[id].x,
+        y: backendPlayers[id].y,
+        angle: backendPlayers[id].angle,
+        duration: 0.033,
+        ease: 'linear'
+      })
+
     }
   }
 })
@@ -38,3 +56,15 @@ function animate(){
   }
 }
 animate()
+
+setInterval(()=>{
+  if(frontendPlayers[socket.id]){
+    frontendPlayers[socket.id].update(keys)
+    socket.emit('updatePlayer', {
+      x: frontendPlayers[socket.id].x,
+      y: frontendPlayers[socket.id].y,
+      angle: frontendPlayers[socket.id].angle
+    })
+  }
+  
+}, 1000/60)
